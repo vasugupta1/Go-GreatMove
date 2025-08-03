@@ -33,6 +33,5 @@ dist/
 build/
 
 # MongoDB data (if present)
-mongo-data/
-
-chroma-data/
+mongo-data/**/
+chroma-data/**/
