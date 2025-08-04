@@ -35,3 +35,8 @@ build/
 # MongoDB data (if present)
 mongo-data/**/
 chroma-data/**/
+
+
+.idea/
+
+.vscode/
