@@ -36,18 +36,32 @@ func (rm *GetProperties) GetPropertiesHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch location identifiers"})
 		return
 	}
-	var properties []models.Property
+
+	type result struct {
+		locationId string
+		properties []models.Property
+		err        error
+	}
+
+	resultChannel := make(chan result, len(locationIdentifiers))
 	for _, locationId := range locationIdentifiers {
-		result, err := rm.RightMoveService.SearchProperties(locationId)
-		if err != nil {
+		go func(locId string) {
+			props, err := rm.RightMoveService.SearchProperties(locId)
+			resultChannel <- result{locationId: locId, properties: props, err: err}
+		}(locationId)
+	}
+
+	var properties []models.Property
+	for i := 0; i < len(locationIdentifiers); i++ {
+		res := <-resultChannel
+		if res.err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch properties"})
 			return
 		}
-		properties = append(properties, result...)
+		properties = append(properties, res.properties...)
+		rm.SaveProperties(res.properties)
 	}
-	if len(properties) > 0 {
-		rm.SaveProperties(properties)
-	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"version": "1.0.0",
 		"data":    properties,

@@ -32,11 +32,10 @@ Thumbs.db
 dist/
 build/
 
-# MongoDB data (if present)
-mongo-data/**/
-chroma-data/**/
-
 
 .idea/
 
 .vscode/
+
+mongo-data/
+chroma-data/    
