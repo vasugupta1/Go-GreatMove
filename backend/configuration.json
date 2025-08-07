@@ -1,0 +1,7 @@
+{
+  "MONGO_URI": "mongodb://root:example@localhost:27017",
+  "MONGO_DB": "greatmove",
+  "MONGO_COLLECTION": "properties",
+  "SERVER_PORT": "8080",
+  "RIGHTMOVE_API_URL": "https://www.rightmove.co.uk"
+}

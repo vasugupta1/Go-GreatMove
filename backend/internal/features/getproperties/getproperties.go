@@ -15,10 +15,10 @@ type GetPropertiesHandler interface {
 
 type GetProperties struct {
 	RightMoveService  services.RightMoveService
-	RepositoryService services.GenericMongoRepository[models.Property]
+	RepositoryService services.MongoRepository[models.Property]
 }
 
-func ConstructGetPropertiesHandler(rightMoveService services.RightMoveService, repositoryService services.GenericMongoRepository[models.Property]) *GetProperties {
+func ConstructGetPropertiesHandler(rightMoveService services.RightMoveService, repositoryService services.MongoRepository[models.Property]) *GetProperties {
 	return &GetProperties{
 		RightMoveService:  rightMoveService,
 		RepositoryService: repositoryService,

@@ -6,6 +6,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
+type MongoRepository[T any] interface {
+	Create(item T) (T, error)
+	FindByID(id string) (T, error)
+}
+
 type GenericMongoRepository[T any] struct {
 	collection *mongo.Collection
 }
