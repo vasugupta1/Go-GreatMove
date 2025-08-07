@@ -19,6 +19,7 @@ type RightMoveService interface {
 
 type RightMove struct {
 	HTTPClient HttpClient
+	ApiURL     string
 }
 
 const (
@@ -26,9 +27,10 @@ const (
 	MaxResults    = 1000
 )
 
-func ConstructRightMove(client HttpClient) *RightMove {
+func ConstructRightMove(client HttpClient, apiURL string) *RightMove {
 	return &RightMove{
 		HTTPClient: client,
+		ApiURL:     apiURL,
 	}
 }
 
@@ -43,7 +45,7 @@ func (fl *RightMove) GetLocationIdentifiers(query string) ([]string, error) {
 	}
 	tokenziedQuery := builder.String()
 	token := strings.TrimSuffix(tokenziedQuery, "/")
-	url := fmt.Sprintf("https://www.rightmove.co.uk/typeAhead/uknostreet/%s/", token)
+	url := fmt.Sprintf("%s/typeAhead/uknostreet/%s/", fl.ApiURL, token)
 	resp, err := fl.HTTPClient.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching locations: %w", err)
@@ -62,7 +64,7 @@ func (fl *RightMove) GetLocationIdentifiers(query string) ([]string, error) {
 
 func (fl *RightMove) SearchProperties(locationId string) ([]models.Property, error) {
 	var offset = 0
-	firstPageUrl := constructSearchUrl(offset, locationId, ResultPerPage)
+	firstPageUrl := constructSearchUrl(fl.ApiURL, offset, locationId, ResultPerPage)
 	searchResponse, err := getAndParseJsonResponse(firstPageUrl)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching properties: %w", err)
@@ -70,7 +72,7 @@ func (fl *RightMove) SearchProperties(locationId string) ([]models.Property, err
 	var totalResult []models.Property
 	totalResult = append(totalResult, searchResponse.Properties...)
 	for offset := ResultPerPage; offset < MaxResults; offset += ResultPerPage {
-		searchUrl := constructSearchUrl(offset, locationId, ResultPerPage)
+		searchUrl := constructSearchUrl(fl.ApiURL, offset, locationId, ResultPerPage)
 		searchResponse, err := getAndParseJsonResponse(searchUrl)
 		if err != nil {
 			return nil, fmt.Errorf("error fetching properties: %w", err)
@@ -108,8 +110,7 @@ func getAndParseJsonResponse(url string) (*models.RightMoveSearchResponse, error
 	return &response, nil
 }
 
-func constructSearchUrl(offset int, locationId string, resultPerPage int) string {
-	baseUrl := "https://www.rightmove.co.uk/api/_search"
+func constructSearchUrl(baseUrl string, offset int, locationId string, resultPerPage int) string {
 	params := url.Values{}
 	params.Set("areaSizeUnit", "sqft")
 	params.Set("channel", "BUY")
@@ -122,7 +123,7 @@ func constructSearchUrl(offset int, locationId string, resultPerPage int) string
 	params.Set("radius", "0.0")
 	params.Set("sortType", "6")
 	params.Set("viewType", "LIST")
-	return fmt.Sprintf("%s?%s", baseUrl, params.Encode())
+	return fmt.Sprintf("%s/api/_search?%s", baseUrl, params.Encode())
 }
 
 func extractLocations(jsonResponse []byte) []string {
