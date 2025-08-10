@@ -58,8 +58,8 @@ func (rm *GetProperties) GetPropertiesHandler(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch properties"})
 			return
 		}
+		rm.SaveProperties(&res.properties, &res.locationId)
 		properties = append(properties, res.properties...)
-		rm.SaveProperties(res.properties)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -68,10 +68,14 @@ func (rm *GetProperties) GetPropertiesHandler(c *gin.Context) {
 	})
 }
 
-func (rm *GetProperties) SaveProperties(properties []models.Property) {
-	for _, prop := range properties {
-		_, err := rm.RepositoryService.Create(prop)
+func (rm *GetProperties) SaveProperties(properties *[]models.Property, locationId *string) {
+	for index := range *properties {
+		// this line allows me to work with the orignal slice and mutate it how I want it, I cannot use _,proper : range * properties as this will create a copy of properties
+		prop := &(*properties)[index]
+		prop.LocationId = locationId
+		_, err := rm.RepositoryService.Create(*prop)
 		if err != nil {
+			//not good because if we fail to save then we lose the property but for now we will we will just log the error and continue.
 			fmt.Println("Error saving property:", err)
 			continue
 		}

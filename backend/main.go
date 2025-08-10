@@ -18,24 +18,25 @@ import (
 func main() {
 	log.Println("Starting GreatMove backend...")
 	config := loadConfiguration()
+	httpClient := services.ConstructHttpClient()
+	rightMoveService := services.ConstructRightMove(httpClient, config.RightMoveAPIURL)
 	repository := getPropertyRepository(config)
 	router := gin.Default()
 	router.GET("/healthCheck", health.HealthHandler)
-	router.GET("/properties", getPropertiesHandler(repository, config).GetPropertiesHandler)
-	router.POST("/transform", transformPropertiesHandler(repository).TransformPropertiesHandler)
+	router.GET("/properties", getPropertiesHandler(repository, rightMoveService).GetPropertiesHandler)
+	router.POST("/transform", transformPropertiesHandler(repository, rightMoveService).TransformPropertiesHandler)
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }
 
-func getPropertiesHandler(repository services.MongoRepository[models.Property], config models.Configuration) getproperties.GetPropertiesHandler {
-	httpClient := services.ConstructHttpClient()
-	rightMoveService := services.ConstructRightMove(httpClient, config.RightMoveAPIURL)
+func getPropertiesHandler(repository services.MongoRepository[models.Property], rightMoveService services.RightMoveService) getproperties.GetPropertiesHandler {
+
 	return getproperties.ConstructGetPropertiesHandler(rightMoveService, repository)
 }
 
-func transformPropertiesHandler(repository services.MongoRepository[models.Property]) transformproperties.TransformPropertiesHandler {
-	return transformproperties.ConstructGetPropertiesHandler(repository)
+func transformPropertiesHandler(repository services.MongoRepository[models.Property], rightMoveService services.RightMoveService) transformproperties.TransformPropertiesHandler {
+	return transformproperties.ConstructGetPropertiesHandler(repository, rightMoveService)
 }
 
 func getPropertyRepository(configuration models.Configuration) services.MongoRepository[models.Property] {

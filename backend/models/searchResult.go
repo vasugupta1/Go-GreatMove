@@ -11,6 +11,7 @@ type RightMoveSearchResponse struct {
 
 type Property struct {
 	ID                          *int            `json:"id,omitempty" bson:"_id,omitempty"`
+	LocationId                  *string         `bson:"locationId,omitempty"`
 	Bedrooms                    *int            `json:"bedrooms,omitempty"`
 	Bathrooms                   *int            `json:"bathrooms,omitempty"`
 	NumberOfImages              *int            `json:"numberOfImages,omitempty"`
