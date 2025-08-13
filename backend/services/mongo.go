@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type MongoRepository[T any] interface {
 	Create(item T) (T, error)
 	FindByID(id string) (T, error)
-	FindByFilter(filter interface{}) ([]T, error)
+	FindByFilter(filter interface{}, options *options.FindOptionsBuilder) ([]T, error)
 }
 
 type GenericMongoRepository[T any] struct {
@@ -39,9 +40,10 @@ func (r *GenericMongoRepository[T]) FindByID(id string) (T, error) {
 	return item, nil
 }
 
-func (r *GenericMongoRepository[T]) FindByFilter(filter interface{}) ([]T, error) {
+// update to use options so I can work with paganation later on
+func (r *GenericMongoRepository[T]) FindByFilter(filter interface{}, options *options.FindOptionsBuilder) ([]T, error) {
 	var result []T
-	cursor, err := r.collection.Find(context.Background(), filter)
+	cursor, err := r.collection.Find(context.Background(), filter, options)
 	if err != nil {
 		return nil, err
 	}

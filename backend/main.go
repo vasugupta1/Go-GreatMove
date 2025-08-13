@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	getproperties "github.com/greatmove/backend/internal/features/getproperties"
@@ -25,7 +27,15 @@ func main() {
 	router.GET("/healthCheck", health.HealthHandler)
 	router.GET("/properties", getPropertiesHandler(repository, rightMoveService).GetPropertiesHandler)
 	router.POST("/transform", transformPropertiesHandler(repository, rightMoveService).TransformPropertiesHandler)
-	if err := router.Run(":8080"); err != nil {
+
+	srv := &http.Server{
+		Addr:         ":8080",
+		Handler:      router,
+		ReadTimeout:  300 * time.Second, // 5 minutes
+		WriteTimeout: 300 * time.Second, // 5 minutes
+		IdleTimeout:  300 * time.Second,
+	}
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }
